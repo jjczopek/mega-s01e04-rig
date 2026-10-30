@@ -1,8 +1,9 @@
 ---
 plan: morning-digest
-status: ready
+status: done
 owner: rook
 opened: 2026-10-29
+closed: 2026-10-30
 ---
 
 # Morning digest
@@ -77,3 +78,24 @@ page again with `LANE_MARKER` unset (the banner reads "no marker set") and uploa
 link. Move this plan to `docs/plans/done/` with its issue list.
 
 Done when: the preview link no longer shows the lane marker.
+
+## Issues
+
+- [#1 Kontrakt typów](https://github.com/jjczopek/mega-s01e04-rig/issues/1) — codex · gpt-6-astra · high.
+- [#2 Czytnik logów](https://github.com/jjczopek/mega-s01e04-rig/issues/2) — codex · gpt-6-astra · high.
+- [#3 Strona digest](https://github.com/jjczopek/mega-s01e04-rig/issues/3) — codex · gpt-6-luna · medium.
+- [#4 Endpoint JSON](https://github.com/jjczopek/mega-s01e04-rig/issues/4) — codex · gpt-6-luna · medium.
+- [#5 Linki na tablicy](https://github.com/jjczopek/mega-s01e04-rig/issues/5) — codex · gpt-6-luna · medium.
+- [#6 Testy tras](https://github.com/jjczopek/mega-s01e04-rig/issues/6) — codex · gpt-6-luna · medium.
+- [#7 Podgląd do recenzji](https://github.com/jjczopek/mega-s01e04-rig/issues/7) — codex · gpt-6.1-sol · high.
+- [#8 Usunięcie znacznika](https://github.com/jjczopek/mega-s01e04-rig/issues/8) — codex · gpt-6.1-sol · high.
+
+## Decisions
+
+The human chose per-event status counts on the board, rather than last job states: 2026-10-28 has ok 10 / retry 4 / fail 1. Malformed lines are counted separately.
+
+The course review clarified that preview issue #7 must stay open until the reviewer has looked; sending the preview alone does not allow closing it. The premature closure was corrected by reopening #7.
+
+## Review and cleanup
+
+The reviewer confirmed seeing the preview at https://mega-s01e04-rig-jjczopek.netlify.app/. After separate human approval, the page was saved with LANE_MARKER unset and uploaded over the same URL. The temporary Mikrus copies were also replaced, and the old marker-bearing immutable Netlify deploy was deleted. All current links show no marker set.
