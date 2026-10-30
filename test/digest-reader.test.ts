@@ -25,6 +25,7 @@ describe('readNight', () => {
     expect(await readNight('runs', night)).toEqual({
       night,
       badLines: 1,
+      counts: { ok: 10, retry: 4, fail: 1 },
       rows: [
         { job: 'digest/render', owner: null, runs: 1, retries: 0, lastStatus: 'ok', lastError: null,
           firstAt: '2026-10-29T05:41:09+01:00', lastAt: '2026-10-29T05:41:09+01:00' },
@@ -52,17 +53,17 @@ describe('readNight', () => {
 
   it('accepts a real leap day', async () => {
     await writeFile(join(runsDir, '2024-02-29.jsonl'), '');
-    expect(await readNight(runsDir, '2024-02-29')).toEqual({ night: '2024-02-29', rows: [], badLines: 0 });
+    expect(await readNight(runsDir, '2024-02-29')).toEqual({ night: '2024-02-29', rows: [], badLines: 0, counts: { ok: 0, retry: 0, fail: 0 } });
   });
 
   it.each(['', '\n \t\r\n\n'])('keeps empty and blank files as existing nights', async contents => {
     await writeFile(join(runsDir, `${night}.jsonl`), contents);
-    expect(await readNight(runsDir, night)).toEqual({ night, rows: [], badLines: 0 });
+    expect(await readNight(runsDir, night)).toEqual({ night, rows: [], badLines: 0, counts: { ok: 0, retry: 0, fail: 0 } });
   });
 
   it('counts every nonblank bad line in an all-invalid file', async () => {
     await writeFile(join(runsDir, `${night}.jsonl`), 'broken\n\nnull\r\n{}\n');
-    expect(await readNight(runsDir, night)).toEqual({ night, rows: [], badLines: 3 });
+    expect(await readNight(runsDir, night)).toEqual({ night, rows: [], badLines: 3, counts: { ok: 0, retry: 0, fail: 0 } });
   });
 
   it('rejects malformed shapes and fields without losing valid records', async () => {
@@ -83,6 +84,7 @@ describe('readNight', () => {
     await writeRecords([valid, ...invalid, { ...valid, owner: null }]);
     const digest = await readNight(runsDir, night);
     expect(digest?.badLines).toBe(invalid.length);
+    expect(digest?.counts).toEqual({ ok: 2, retry: 0, fail: 0 });
     expect(digest?.rows).toEqual([{
       job: 'job', owner: null, runs: 2, retries: 0, lastStatus: 'ok', lastError: null,
       firstAt: valid.at, lastAt: valid.at,
@@ -98,7 +100,7 @@ describe('readNight', () => {
       { ...valid, at: '2026-10-29T01:30:00Z', owner: null, status: 'fail' },
     ]);
     expect(await readNight(runsDir, night)).toEqual({
-      night, badLines: 0, rows: [{
+      night, badLines: 0, counts: { ok: 1, retry: 2, fail: 2 }, rows: [{
         job: 'job', owner: null, runs: 5, retries: 2, lastStatus: 'fail', lastError: ' latest error ',
         firstAt: '2026-10-29T02:00:00+02:00', lastAt: '2026-10-29T01:30:00Z',
       }],
@@ -113,6 +115,19 @@ describe('readNight', () => {
     expect(digest?.rows.map(row => row.job)).toEqual([' job ', 'Z', '__proto__', 'a']);
     expect(digest?.rows.every(row => row.owner === ' owner ' && row.lastError === '')).toBe(true);
     expect(digest?.badLines).toBe(0);
+    expect(digest?.counts).toEqual({ ok: 4, retry: 0, fail: 0 });
+  });
+
+  it('counts valid records by status independently of each job’s last status', async () => {
+    await writeRecords([
+      { ...valid, status: 'retry' },
+      { ...valid, status: 'fail' },
+      { ...valid, status: 'ok' },
+      { ...valid, status: 'pending' },
+    ]);
+    const digest = await readNight(runsDir, night);
+    expect(digest?.counts).toEqual({ ok: 1, retry: 1, fail: 1 });
+    expect(digest?.rows[0].lastStatus).toBe('ok');
   });
 
   it('propagates filesystem errors other than missing files', async () => {

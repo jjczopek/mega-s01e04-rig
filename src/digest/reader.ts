@@ -64,12 +64,16 @@ export const readNight: ReadNight = async (runsDir, night) => {
   }
 
   let badLines = 0;
+  const counts = { ok: 0, retry: 0, fail: 0 };
   const records: RunRecord[] = [];
   for (const line of contents.split(/\r?\n/)) {
     if (line.trim() === '') continue;
     const record = parseRecord(line);
     if (record === null) badLines += 1;
-    else records.push(record);
+    else {
+      counts[record.status] += 1;
+      records.push(record);
+    }
   }
 
   // Stable sorting preserves file order for records at the same instant.
@@ -99,5 +103,5 @@ export const readNight: ReadNight = async (runsDir, night) => {
   }
 
   const rows = [...jobs.values()].sort((a, b) => a.job < b.job ? -1 : a.job > b.job ? 1 : 0);
-  return { night, rows, badLines };
+  return { night, rows, badLines, counts };
 };

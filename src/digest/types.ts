@@ -21,6 +21,8 @@ export interface DigestRow {
 /** An existing night's file, even when empty or containing only invalid lines. */
 export interface NightDigest {
   night: string;
+  /** Counts of every valid log event, grouped by status. */
+  counts: Record<RunStatus, number>;
   /** One row per job, sorted ascending by job using string comparison, not locale. */
   rows: DigestRow[];
   /** Nonblank lines with invalid JSON or invalid record fields. */
@@ -34,8 +36,8 @@ export interface NightDigest {
  * Read runsDir/<night>.jsonl. A night must be a real calendar date in YYYY-MM-DD
  * form (no path components). Return null for an invalid night or a missing file
  * (ENOENT). Reject other filesystem errors rather than calling them missing.
- * An empty file returns { night, rows: [], badLines: 0 }; an all-invalid file also
- * has no rows, but retains its bad-line count. Ignore blank lines, including the
+ * An empty file returns zero counts and no rows; an all-invalid file also has
+ * zero counts and no rows, but retains its bad-line count. Ignore blank lines, including the
  * final newline. A bad line never prevents other records from being aggregated.
  *
  * A valid record is an object with a nonempty string job, an ISO 8601 timestamp

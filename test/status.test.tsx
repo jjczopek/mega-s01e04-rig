@@ -11,10 +11,23 @@ describe('status board', () => {
     expect(res.status).toBe(200);
     expect(html).toContain('TEST-MARKER');
     expect(html).toContain('2026-10-28');
+    expect(html).toContain('href="/digest/2026-10-28"');
+    expect(html).toContain('ok 10 · retry 4 · fail 1');
+    expect(html).toContain('href="/digest/2026-10-27"');
+    expect(html).toContain('ok 7 · retry 0 · fail 0');
   });
 
   it('health answers with the lane id', async () => {
     const res = await createApp(config).request('/health');
     expect(await res.json()).toEqual({ ok: true, lane: 'lane-07' });
+  });
+
+  it('links both listed nights to rendered digest pages', async () => {
+    const app = createApp(config);
+    for (const night of ['2026-10-28', '2026-10-27']) {
+      const res = await app.request(`/digest/${night}`);
+      expect(res.status).toBe(200);
+      expect(await res.text()).toContain(`Digest · ${night}`);
+    }
   });
 });
